@@ -1,0 +1,151 @@
+PARSER_BEGIN(Lugosi)
+import java.io.*;
+public class Lugosi {
+
+  public static void main(String args[]) throws ParseException,IOException {
+    
+ Lugosi analisador = new Lugosi(new FileInputStream(args[0]));
+ analisador.Lugosi();
+  }
+
+}
+
+PARSER_END(Lugosi)
+
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+}
+
+TOKEN :
+{
+  <MAIN: "main">
+| <ACHAVES: "{">
+| <PVIRG : ";">
+| <FCHAVES: "}">
+| <ATRIB: ":=">
+| <APAREN: "(">
+| <FPAREN: ")">
+| <PRINT: "print">
+
+}
+
+TOKEN :    
+{
+  <NUM : (["0"-"9"])+>
+ |< ID: ["a"-"z","A"-"Z"] ( ["a"-"z","A"-"Z","0"-"9"])*>
+ 
+ 
+
+}
+
+
+
+void Lugosi () :
+{Token t;}
+{
+
+(
+  
+  <MAIN> { System.out.println("Palavra reservada: main");}
+| <ACHAVES> { System.out.println("Abre chaves: {");}
+| <FCHAVES> { System.out.println("Fecha chaves: }");}
+| <PVIRG> { System.out.println("Ponto e Virgula: ;");}
+| <APAREN> { System.out.println("Abre parenteses: ( ");}
+| <FPAREN> { System.out.println("Fecha parenteses: )");}
+| <ATRIB> { System.out.println("atribuicao: :=");}
+| t=<NUM> { System.out.println("Número: "+ t.image);}
+| t=<ID> { System.out.println("Identificador: "+ t.image);}
+| <PALRESER> { System.out.println("Palavra reservada: print");}
+
+)
+
+}
+
+// LUGOSI -> MAIN FUNC?
+
+void Lugosi():{}
+{
+
+<MAIN>  <ACHAVES>  VARDECL() SEQCOMANDOS() <FCHAVES>
+<EOF>
+
+}
+
+//VARDECL -> vazio Vardecl2
+
+void VARDECL():
+{}
+{
+  ?( Vardecl2())
+}
+
+
+//VARDECL -> VAR TIPO VARDECL' | VAZIO
+
+void Vardecl2() :
+{}
+{
+
+ ( var() tipo() Vardecl2())?
+
+}
+
+// TIPO -> "int" | "bool" |"float" | "void"
+
+void Tipo():
+{}
+{
+ <INT> | <BOOL> | <FLOAT> | <VOID>
+
+}
+
+//SEQCOMANDOS -> VAZIO SEQCOMANDOS'
+
+void Seqcomandos():{}
+{
+  ?(Seqcomandos2())
+
+}
+
+//SEQCOMANDOS' -> COMANDO SEQCOMANDOS' | VAZIO
+
+Seqcomandos2():
+{
+  {
+    (Comando() Seqcomandos2())?
+
+  }
+}
+
+//COMANDO -> TOKEN_id ":=" EXP ";"
+
+Comando() : 
+{}
+{
+    token_id() <ATRIB>  EXP() <PVIRG>
+}
+//| TOKEN_id "(" LISTAEXP? ")" ";"
+//| "if" "(" EXP ")" "{" SEQCOMANDOS "}" ";"
+//| "while" "(" EXP ")" "do" "{" SEQCOMANDOS "}" ";"
+//| "do" "{" SEQCOMANDOS "}" "while" "(" EXP ")" ";"
+//| "return" EXP ";"
+//| "print" "(" EXP ")" ";"
+
+TOKEN_ID():
+{}
+{
+  <APAREN> (LISTAEXP())?  <FPAREN> <PVIRG> | if() <APAREN> EXP() <FPAREN> <ACHAVES> SEQCOMANDOS() <FCHAVES> <PVIRG>
+  | while() <APAREN> EXP() <FPAREN>   DO() <ACHAVES> SEQCOMANDOS() <FCHAVES> <PVIRG> | DO() <ACHAVES> SEQCOMANDOS() <FCHAVES> while()  <APAREN> EXP() <FPAREN> <PVIRG>
+  | RETURN() EXP() <PVIRG>  | PRINT() <APAREN> EXP()  <FPAREN> <PVIRG>
+}
+
+//EXP -> "(" EXP OP EXP ")" | FATOR
+
+
+
+//FATOR -> TOKEN_ID FATOR'| TOKEN_numliteral | true | false
+//FATOR' -> "(" LISTAEXP? ")" | VAZIO
