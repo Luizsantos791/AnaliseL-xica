@@ -29,12 +29,20 @@ TOKEN :
 | <ATRIB: ":=">
 | <APAREN: "(">
 | <FPAREN: ")">
-|<PALRESER: "print">
+|<PRINT: "print">
+|<VIRGULA: "virgula">
+|<NUMLITERAL: "numliteral">
 
 |<tipo_int: "int">
 |<tipo_float: "float">
 |<tipo_bool: "bool">
 |<tipo_void: "void">
+
+|<IF : "if">
+|<WHILE: "while">
+|<RETURN: "return">
+|<DO: "do">
+|<FUNCTION: "function">
 
 |<soma: "+">
 |<menos: "-">
@@ -42,20 +50,20 @@ TOKEN :
 |<div: "/">
 |<and: "&&">
 |<ou: "||">
-|<menor: "<">
-|<maior: ">">
+|<menor: "<" >
+|<maior: ">" >
 |<igual: "==">
-|<VARDECL: "var">
+|<VAR: "var">
 
 |<falso: "false">
 |<verdadeiro: "true">
-
+|<vazio: "?">
 }
 
 TOKEN :
 {
   <NUM : (["0"-"9"])+>
- |< ID: ["a"-"z","A"-"Z"] ( ["a"-"z","A"-"Z","0"-"9"])*> 
+ |< ID: ["a"-"z","A"-"Z"] ( ["a"-"z","A"-"Z","0"-"9"])* (["_"])*>
  
 }
 
@@ -66,32 +74,33 @@ TOKEN :
 void Lugosi():
 {}
 {
-  Main() (func())*
+  Main() 
+  FUNC()
   <EOF>
 }
 void Main():
 {}
 {
-<MAIN>  <ACHAVES>  VARDECL() SEQCOMANDOS() <FCHAVES>
+<MAIN>  <ACHAVES>  VARDECL() Seqcomandos() <FCHAVES>
 
 }
 
-//VARDECL -> vazio Vardecl2
+//VARDECL ->  ? (Vardecl2)
 
 void VARDECL():
 {}
 {
-  vazio | ( Vardecl2())
+  ( Vardecl2())?
 }
 
 
-//VARDECL -> VAR TIPO VARDECL' | VAZIO
+//VARDECL -> <var> TIPO VARDECL' | ?
 
 void Vardecl2() :
 {}
 {
 
- ( var() tipo() Vardecl2())?
+ ( <VAR> Tipo() <ID> Vardecl2()) <PVIRG>
 
 }
 
@@ -104,109 +113,120 @@ void Tipo():
 
 }
 
-//SEQCOMANDOS -> VAZIO SEQCOMANDOS'
+//SEQCOMANDOS -> ? SEQCOMANDOS'
 
 void Seqcomandos():{}
 {
-  ?(Seqcomandos2())
+  (Seqcomandos2())
 
 }
 
-//SEQCOMANDOS' -> COMANDO SEQCOMANDOS' | VAZIO
+//SEQCOMANDOS' -> COMANDO SEQCOMANDOS' | vazio
 
-Seqcomandos2():
-{
-  {
-    (Comando() Seqcomandos2())?
-
-  }
-}
-
-//COMANDO -> TOKEN_id ":=" EXP ";"
-
-Comando() : 
+void Seqcomandos2():
 {}
 {
-    token_id() <ATRIB>  EXP() <PVIRG>
+  (Comando() Seqcomandos2())?
+
 }
-//| TOKEN_id "(" LISTAEXP? ")" ";"
+//COMANDO -> ID ":=" EXP ";"
+//| ID "(" LISTAEXP? ")" ";"
 //| "if" "(" EXP ")" "{" SEQCOMANDOS "}" ";"
 //| "while" "(" EXP ")" "do" "{" SEQCOMANDOS "}" ";"
 //| "do" "{" SEQCOMANDOS "}" "while" "(" EXP ")" ";"
 //| "return" EXP ";"
 //| "print" "(" EXP ")" ";"
 
-TOKEN_ID():
+
+void Comando2() : 
 {}
 {
-  <APAREN> (LISTAEXP())?  <FPAREN> <PVIRG> 
-  | if() <APAREN> EXP() <FPAREN> <ACHAVES> SEQCOMANDOS() <FCHAVES> <PVIRG>
-  | while() <APAREN> EXP() <FPAREN>   DO() <ACHAVES> SEQCOMANDOS() <FCHAVES> <PVIRG> 
-  | DO() <ACHAVES> SEQCOMANDOS() <FCHAVES> while()  <APAREN> EXP() <FPAREN> <PVIRG>
-  | RETURN() EXP() <PVIRG>  | PRINT() <APAREN> EXP()  <FPAREN> <PVIRG>
+   <ATRIB>  EXP() <PVIRG> | <APAREN> (LISTAEXP())?  <FPAREN> <PVIRG> 
+}
+
+void Comando():
+{}
+{
+<ID> Comando2()
+  | <IF> <APAREN> EXP() <FPAREN> <ACHAVES> Seqcomandos() <FCHAVES> <PVIRG>
+  | <WHILE> <APAREN> EXP() <FPAREN>   <DO> <ACHAVES> Seqcomandos() <FCHAVES> <PVIRG> 
+  | <DO> <ACHAVES> Seqcomandos() <FCHAVES> <WHILE>  <APAREN> EXP() <FPAREN> <PVIRG>
+  | <RETURN> EXP() <PVIRG>  
+  | <PRINT> <APAREN> EXP()  <FPAREN> <PVIRG>
 }
 
 //EXP -> "(" EXP OP EXP ")" | FATOR
-EXP():
+void EXP():
 {}
 {
   <APAREN> EXP() OP() EXP() <FPAREN> | FATOR()
 
 }
-//FATOR -> TOKEN_ID FATOR'| TOKEN_numliteral | true | false
+//FATOR -> ID FATOR'| TOKEN_numliteral | true | false
 
-FATOR():
+void FATOR():
 {}
 {
-  TOKEN_ID() FATOR2() | <TOKEN_numliteral> | <verdadeiro> | <falso>
+  <ID> FATOR2() | <NUMLITERAL> | <verdadeiro> | <falso>
 }
 
-//FATOR' -> "(" LISTAEXP? ")" | VAZIO
-FATOR():
+//FATOR' -> "(" LISTAEXP? ")" | ?
+void FATOR2():
 {}
 {
-  <APAREN> (LISTAEXP())?  <FPAREN> | VAZIO
+  (<APAREN> ((LISTAEXP())?  <FPAREN> ))?
 } 
 
 // OP -> <soma> | <menos> | <mult> | <div> | <and> | <ou> | <menor> | <maior> | <igual>
 
-OP():
+void OP():
 {}
 {
-  vazio
+  <soma> | <menos> | <mult> | <div> | <and> | <ou> | <menor> | <maior> | <igual>
 }
 
 //LISTAEXP -> EXP | LISTAEXP "," EXP
 
-LISTAEXP():
+void LISTAEXP():
 {}
 {
-  EXP() | LISTAEXP() <Virgula> EXP()
+  EXP() LISTAEXP2()  
 }
-
-//FUNC-> "function" TIPO TOKEN_id "(" LISTAARG? ")" "{" VARDECL SEQCOMANDOS "}" FUNK2
-FUNC():
+void LISTAEXP2():
 {}
 {
-  <function> TIPO() TOKEN_ID() <APAREN> (LISTAARG())? <FPAREN> <ACHAVES> VARDECL() SEQCOMANDOS() <FCHAVES> FUNC2()
+  (<VIRGULA> EXP())?
 }
-
-
-//FUNC2 ->  "function" TIPO TOKEN_id "(" LISTAARG? ")" "{" VARDECL SEQCOMANDOS "}" | VAZIO
-FUNC2():
+//FUNC-> "function" TIPO ID "(" LISTAARG? ")" "{" VARDECL SEQCOMANDOS "}" FUNK2
+void FUNC():
 {}
 {
-  <function> TIPO() TOKEN_ID() <APAREN> (LISTAARG())? <FPAREN> <ACHAVES> VARDECL() SEQCOMANDOS() <FCHAVES> | VAZIO
+  (FUNC2())?
 }
 
-//LISTAARG -> TIPO TOKEN_id | LISTAARG "," TIPO TOKEN_id
 
-LISTAARG():
+//FUNC2 ->  "function" Tipo ID "(" LISTAARG? ")" "{" VARDECL SEQCOMANDOS "}" 
+void FUNC2(): 
 {}
 {
-  TIPO() TOKEN_ID() | LISTAARG()  <Virgula> TIPO() TOKEN_ID()
+  (<FUNCTION> Tipo() <ID> <APAREN> (LISTAARG())? <FPAREN> <ACHAVES> VARDECL() Seqcomandos() <FCHAVES> FUNC())
+}
+
+//LISTAARG -> Tipo ID | LISTAARG "," TIPO ID
+
+void LISTAARG():
+{}
+{
+  Tipo() <ID> LISTAARG2()  
 
 }
+void LISTAARG2():
+{}
+{
+  (<VIRGULA> Tipo() <ID> ) ?
+}
+
+
 
 
 
