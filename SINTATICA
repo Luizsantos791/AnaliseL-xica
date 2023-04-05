@@ -29,49 +29,50 @@ TOKEN :
 | <ATRIB: ":=">
 | <APAREN: "(">
 | <FPAREN: ")">
-| <PRINT: "print">
+|<PALRESER: "print">
+
+|<tipo_int: "int">
+|<tipo_float: "float">
+|<tipo_bool: "bool">
+|<tipo_void: "void">
+
+|<soma: "+">
+|<menos: "-">
+|<mult: "*">
+|<div: "/">
+|<and: "&&">
+|<ou: "||">
+|<menor: "<">
+|<maior: ">">
+|<igual: "==">
+|<VARDECL: "var">
+
+|<falso: "false">
+|<verdadeiro: "true">
 
 }
 
-TOKEN :    
+TOKEN :
 {
   <NUM : (["0"-"9"])+>
- |< ID: ["a"-"z","A"-"Z"] ( ["a"-"z","A"-"Z","0"-"9"])*>
+ |< ID: ["a"-"z","A"-"Z"] ( ["a"-"z","A"-"Z","0"-"9"])*> 
  
- 
-
 }
 
 
-
-void Lugosi () :
-{Token t;}
-{
-
-(
-  
-  <MAIN> { System.out.println("Palavra reservada: main");}
-| <ACHAVES> { System.out.println("Abre chaves: {");}
-| <FCHAVES> { System.out.println("Fecha chaves: }");}
-| <PVIRG> { System.out.println("Ponto e Virgula: ;");}
-| <APAREN> { System.out.println("Abre parenteses: ( ");}
-| <FPAREN> { System.out.println("Fecha parenteses: )");}
-| <ATRIB> { System.out.println("atribuicao: :=");}
-| t=<NUM> { System.out.println("Número: "+ t.image);}
-| t=<ID> { System.out.println("Identificador: "+ t.image);}
-| <PALRESER> { System.out.println("Palavra reservada: print");}
-
-)
-
-}
 
 // LUGOSI -> MAIN FUNC?
 
-void Lugosi():{}
+void Lugosi():
+{}
 {
-
+  Main() (func())*
+  <EOF>
+}
+void Main():
+{}
+{
 <MAIN>  <ACHAVES>  VARDECL() SEQCOMANDOS() <FCHAVES>
-<EOF>
 
 }
 
@@ -80,7 +81,7 @@ void Lugosi():{}
 void VARDECL():
 {}
 {
-  ?( Vardecl2())
+  vazio | ( Vardecl2())
 }
 
 
@@ -99,7 +100,7 @@ void Vardecl2() :
 void Tipo():
 {}
 {
- <INT> | <BOOL> | <FLOAT> | <VOID>
+ <tipo_int> | <tipo_bool> | <tipo_float> | <tipo_void>
 
 }
 
@@ -138,14 +139,74 @@ Comando() :
 TOKEN_ID():
 {}
 {
-  <APAREN> (LISTAEXP())?  <FPAREN> <PVIRG> | if() <APAREN> EXP() <FPAREN> <ACHAVES> SEQCOMANDOS() <FCHAVES> <PVIRG>
-  | while() <APAREN> EXP() <FPAREN>   DO() <ACHAVES> SEQCOMANDOS() <FCHAVES> <PVIRG> | DO() <ACHAVES> SEQCOMANDOS() <FCHAVES> while()  <APAREN> EXP() <FPAREN> <PVIRG>
+  <APAREN> (LISTAEXP())?  <FPAREN> <PVIRG> 
+  | if() <APAREN> EXP() <FPAREN> <ACHAVES> SEQCOMANDOS() <FCHAVES> <PVIRG>
+  | while() <APAREN> EXP() <FPAREN>   DO() <ACHAVES> SEQCOMANDOS() <FCHAVES> <PVIRG> 
+  | DO() <ACHAVES> SEQCOMANDOS() <FCHAVES> while()  <APAREN> EXP() <FPAREN> <PVIRG>
   | RETURN() EXP() <PVIRG>  | PRINT() <APAREN> EXP()  <FPAREN> <PVIRG>
 }
 
 //EXP -> "(" EXP OP EXP ")" | FATOR
+EXP():
+{}
+{
+  <APAREN> EXP() OP() EXP() <FPAREN> | FATOR()
 
-
-
+}
 //FATOR -> TOKEN_ID FATOR'| TOKEN_numliteral | true | false
+
+FATOR():
+{}
+{
+  TOKEN_ID() FATOR2() | <TOKEN_numliteral> | <verdadeiro> | <falso>
+}
+
 //FATOR' -> "(" LISTAEXP? ")" | VAZIO
+FATOR():
+{}
+{
+  <APAREN> (LISTAEXP())?  <FPAREN> | VAZIO
+} 
+
+// OP -> <soma> | <menos> | <mult> | <div> | <and> | <ou> | <menor> | <maior> | <igual>
+
+OP():
+{}
+{
+  vazio
+}
+
+//LISTAEXP -> EXP | LISTAEXP "," EXP
+
+LISTAEXP():
+{}
+{
+  EXP() | LISTAEXP() <Virgula> EXP()
+}
+
+//FUNC-> "function" TIPO TOKEN_id "(" LISTAARG? ")" "{" VARDECL SEQCOMANDOS "}" FUNK2
+FUNC():
+{}
+{
+  <function> TIPO() TOKEN_ID() <APAREN> (LISTAARG())? <FPAREN> <ACHAVES> VARDECL() SEQCOMANDOS() <FCHAVES> FUNC2()
+}
+
+
+//FUNC2 ->  "function" TIPO TOKEN_id "(" LISTAARG? ")" "{" VARDECL SEQCOMANDOS "}" | VAZIO
+FUNC2():
+{}
+{
+  <function> TIPO() TOKEN_ID() <APAREN> (LISTAARG())? <FPAREN> <ACHAVES> VARDECL() SEQCOMANDOS() <FCHAVES> | VAZIO
+}
+
+//LISTAARG -> TIPO TOKEN_id | LISTAARG "," TIPO TOKEN_id
+
+LISTAARG():
+{}
+{
+  TIPO() TOKEN_ID() | LISTAARG()  <Virgula> TIPO() TOKEN_ID()
+
+}
+
+
+
