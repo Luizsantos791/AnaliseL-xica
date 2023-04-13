@@ -30,8 +30,7 @@ TOKEN :
 | <APAREN: "(">
 | <FPAREN: ")">
 |<PRINT: "print">
-|<VIRGULA: "virgula">
-|<NUMLITERAL: "numliteral">
+|<VIRGULA: ",">
 |<tipo_int: "int">
 |<tipo_float: "float">
 |<tipo_bool: "bool">
@@ -53,7 +52,6 @@ TOKEN :
 |<VAR: "var">
 |<falso: "false">
 |<verdadeiro: "true">
-|<vazio: "?">
 }
 
 TOKEN :
@@ -95,7 +93,7 @@ void Tipo():
 
 void Seqcomandos():{}
 {
-  (Seqcomandos2())?
+  (Seqcomandos2())
 
 }
 
@@ -104,7 +102,7 @@ void Seqcomandos():{}
 void Seqcomandos2():
 {}
 {
-  (Comando() Seqcomandos2())
+  (Comando() Seqcomandos2())  ?
 
 }
 //COMANDO -> ID ":=" EXP ";"
@@ -140,12 +138,12 @@ void EXP():
   <APAREN> EXP() OP() EXP() <FPAREN> | FATOR()
 
 }
-//FATOR -> ID FATOR'| TOKEN_numliteral | true | false
+//FATOR -> ID FATOR'| TOKEN_num| true | false
 
 void FATOR():
 {}
 {
-  <ID> FATOR2() | <NUMLITERAL> | <verdadeiro> | <falso>
+  <ID> FATOR2() | <NUM> | <verdadeiro> | <falso>
 }
 
 //FATOR' -> "(" LISTAEXP? ")" | ?
@@ -208,7 +206,7 @@ void LISTAARG2():
 void VARDECL():
 {}
 {
-  ( Vardecl2())?
+  ( Vardecl2())
 }
 
 
@@ -218,10 +216,7 @@ void Vardecl2() :
 {}
 {
 
- ( <VAR> Tipo() <ID>  <PVIRG> Vardecl2())
+  (<VAR> Tipo() <ID>  <PVIRG> Vardecl2()) ?
 
 }
-
-
-
 
