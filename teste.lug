@@ -5,7 +5,7 @@ main{
     var float d;
     var void e;
     
-    a := 10;
+    a := 9;
     b := 1;
     c := true;
 
@@ -13,12 +13,12 @@ main{
     b := (a-b);
 
     a := (a*b);
-    a := (a/5);
+    a := (a/10);
 
-    return f(a, b, c);
+    return f(a, b);
 }
 
-function void f(int a, int b, bool c){
+function void f(int a, int b){
 
     while((c == true))do{
         a := (a-b);
